@@ -1,0 +1,153 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Login System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h2>Login with OTP</h2>
+
+    <!-- Step 1: Enter Mobile Number -->
+    <div id="mobileSection">
+        <input type="text" id="mobile" placeholder="Enter 10-digit Mobile No." maxlength="10">
+        <button onclick="checkNumber()">Next</button>
+    </div>
+
+    <!-- Step 2: If New User, Enter Name -->
+    <div id="nameSection" style="display: none;">
+        <input type="text" id="name" placeholder="Enter Your Name">
+        <button onclick="sendOTP()">Get OTP</button>
+    </div>
+
+    <!-- Step 3: OTP Section -->
+    <div id="otpSection" style="display: none;">
+        <p id="otpDisplay" style="font-weight: bold; color: green; display: none;"></p> 
+        <input type="text" id="otp" placeholder="Enter OTP" maxlength="6">
+        <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+
+    <!-- Admin Button -->
+    <button onclick="showAdminPrompt()">Admin</button>
+
+    <!-- Admin Section -->
+    <div id="adminSection" style="display: none;">
+        <h3>Saved Login Details</h3>
+        <pre id="adminData"></pre>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html><style>body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 50px;
+}
+
+input {
+    padding: 10px;
+    margin: 5px;
+    width: 250px;
+    display: block;
+    margin: 10px auto;
+}
+
+button {
+    padding: 10px 15px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+#otpSection, #adminSection {
+    display: none;
+}
+
+#otpDisplay {
+    font-weight: bold;
+    color: green;
+}</style><script>function checkNumber() {
+    let mobile = document.getElementById('mobile').value.trim();
+
+    // Validate Mobile Number
+    if (!/^\d{10}$/.test(mobile)) {
+        alert("Enter a valid 10-digit mobile number.");
+        return;
+    }
+
+    // Check if the number has already logged in before
+    if (localStorage.getItem("login_" + mobile)) {
+        alert("Number already registered! Redirecting...");
+        window.location.href = "https://akashsinghlivebth.site"; // Redirect directly
+    } else {
+        // Show name input and OTP button for new users
+        document.getElementById('nameSection').style.display = 'block';
+    }
+}
+
+function sendOTP() {
+    let name = document.getElementById('name').value.trim();
+    let mobile = document.getElementById('mobile').value.trim();
+
+    // Validate Name
+    if (name.length < 3) {
+        alert("Enter a valid name (minimum 3 characters).");
+        return;
+    }
+
+    let otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+    let timestamp = new Date().toLocaleString();
+
+    let userData = { name, mobile, otp, timestamp };
+    localStorage.setItem("temp_" + mobile, JSON.stringify(userData));
+
+    // Show OTP (for testing)
+    document.getElementById('otpDisplay').innerText = "Your OTP: " + otp;
+    document.getElementById('otpDisplay').style.display = "block";
+
+    document.getElementById('otpSection').style.display = 'block';
+}
+
+function verifyOTP() {
+    let mobile = document.getElementById('mobile').value.trim();
+    let otpInput = document.getElementById('otp').value.trim();
+    let savedData = JSON.parse(localStorage.getItem("temp_" + mobile));
+
+    if (savedData && savedData.otp == otpInput) {
+        alert("Login successful!");
+
+        // Save permanently
+        localStorage.setItem("login_" + mobile, JSON.stringify(savedData));
+
+        // Redirect immediately
+        window.location.href = "https://akashsinghlivebth.site";
+    } else {
+        alert("Invalid OTP. Try again.");
+    }
+}
+
+function showAdminPrompt() {
+    let password = prompt("Enter Admin Password:");
+    if (password === "62026") {
+        showAdminData();
+    } else {
+        alert("Incorrect password!");
+    }
+}
+
+function showAdminData() {
+    document.getElementById('adminSection').style.display = 'block';
+    let data = "";
+
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key.startsWith("login_")) {
+            let entry = JSON.parse(localStorage.getItem(key));
+            data += `Name: ${entry.name}, Mobile: ${entry.mobile}, OTP: ${entry.otp}, Time: ${entry.timestamp}\n\n`;
+        }
+    }
+
+    document.getElementById('adminData').innerText = data || "No login data available.";
+}</script>
